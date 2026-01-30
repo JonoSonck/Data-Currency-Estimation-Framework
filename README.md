@@ -1,6 +1,6 @@
 # Data Currency Estimation Framework
 
-This repository contains the code linked to a research project around data currency estimation. 
+This repository contains the code linked to a research project about data currency estimation. 
 
 A paper regarding the theory behind the code has been submitted to the IPMU26 conference.
 
@@ -8,7 +8,7 @@ A paper regarding the theory behind the code has been submitted to the IPMU26 co
 Data currency is a dimension in data quality research that addresses discrepancies related to a temporal decline between stored data and real-world values. While several methods exist to estimate data currency, existing research on this topic remains fragmented and approaches the problem from several perspectives. In this paper, we propose a unified framework that integrates existing estimation techniques by representing them as components of nodes within a Bayesian belief network. Each node maintains attribute-specific (meta-)data and, where applicable, an estimation technique for modeling the probability distribution over an attribute’s age. The edges impose dependencies and constraints on the (transfer of) belief through the network. We further describe the combination of nodes in the overall network architecture, including mechanisms for handling dependencies and aggregation. We demonstrate the possibilities of the proposed framework by replicating existing techniques and further expanding them. The modularity of our network allows us to adapt the inner workings of our nodes to accommodate the characteristics of the data under consideration, all while maintaining ease-of-use and interpretability.
 
 
-*The link to the full paper will be shared when the paper is accepted and published.*
+*The link to the full paper will be shared when it's accepted and published.*
 
 
 ## Repository file structure
