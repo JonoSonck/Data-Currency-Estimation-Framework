@@ -29,7 +29,7 @@ The *'cur_est_net_testing_example'* notebook gives a code-based overview of the 
 1. Load in the data as a pandas DataFrame.
 2. Instantiate the preferred node class for each attribute that is involved in the estimate.
 3. Instantiate the network with all relevant nodes.
-4. Run the network estimation function (clear after each estimate!) and output the results.
+4. Run the network estimation function (generate and clear the beliefs per entity!) and output the results.
 
 
 
