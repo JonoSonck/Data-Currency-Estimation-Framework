@@ -7,7 +7,7 @@ from src.abstract_node import AgeNode
 
 
 class CUSUM(AgeNode, ABC):
-    def __init__(self, attribute, ground_belief=1.0, cusum=0, a=1, b=1):
+    def __init__(self, attribute: str, ground_belief: float = 1.0, cusum: float = 0, a: float = 1, b: float = 1):
         super().__init__(attribute)
         self.type = 'AbstractCUSUM Node'
         self.ground_belief = ground_belief
@@ -15,13 +15,13 @@ class CUSUM(AgeNode, ABC):
         self.a = a
         self.b = b
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f"CUSUM node for attribute '{self.attribute}'"
     
-    def cusum_belief(self):
+    def cusum_belief(self) -> Dict[str, float]:
         return {'ground':self.ground_belief, 'alternative':(1-self.ground_belief)}
     
-    def update_belief(self):
+    def update_belief(self) -> None:
         # update the cusum belief
         alt_prob = np.tanh((self.cusum**self.a)/self.b)
         self.ground_belief = 1-alt_prob
@@ -49,17 +49,17 @@ class CUSUM(AgeNode, ABC):
 
         self.age_map = updated_age_map.copy()
     
-    def set_cusum(self, cusum):
+    def set_cusum(self, cusum: float) -> None:
         self.cusum = cusum
 
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.cusum = 0.0
 
 
 
 class CUSUMPoisson(CUSUM):
-    def __init__(self, attribute, a=1, b=1, ground_lambda=1.0, alt_lambda=2.0):
+    def __init__(self, attribute: str, a: float = 1, b: float = 1, ground_lambda: float = 1.0, alt_lambda: float = 2.0):
         super().__init__(attribute, a=a, b=b)
         self.type = 'CUSUM Poisson Node'
         if ground_lambda <= 0 or alt_lambda <= 0:
@@ -68,10 +68,10 @@ class CUSUMPoisson(CUSUM):
         self.ground_lambda = ground_lambda
         self.alt_lambda = alt_lambda
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"CUSUM Poisson node for attribute '{self.attribute}'"
       
-    def update_state(self, current):
+    def update_state(self, current: pd.DataFrame) -> None:
         if self.age == None:
             self.age = 0
         else:
@@ -87,14 +87,14 @@ class CUSUMPoisson(CUSUM):
 
             self.delta_time = 1
     
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.delta_time = 1
 
 
 
 class CUSUMNormal(CUSUM):
-    def __init__(self, attribute, a=1, b=1, ground_avg=0.0, ground_std=1.0, alt_avg=2.0, alt_std=1.0):
+    def __init__(self, attribute: str, a: float = 1, b: float = 1, ground_avg: float = 0.0, ground_std: float = 1.0, alt_avg: float = 2.0, alt_std: float = 1.0):
         super().__init__(attribute, a=a, b=b)
         self.type = 'CUSUM Normal Node'
         if ground_std <= 0 or alt_std <= 0:
@@ -105,10 +105,10 @@ class CUSUMNormal(CUSUM):
         self.alt_avg = alt_avg
         self.alt_std = alt_std
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"CUSUM Normal node for attribute '{self.attribute}'"
     
-    def update_state(self, current):
+    def update_state(self, current: pd.DataFrame) -> None:
         if (current.empty) | (current[str(self.attribute)].iloc[0] is None):
             self.delta_time += 1
         else:
@@ -120,6 +120,6 @@ class CUSUMNormal(CUSUM):
 
             self.delta_time = 1
     
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.delta_time = 1

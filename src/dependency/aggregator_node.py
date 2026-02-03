@@ -16,7 +16,7 @@ class BasicQuantifier(Enum):
     FEW     = (lambda x: x ** 0.25,)
     ANY     = (lambda x: 0.0 if x == 0.0 else 1.0,)
 
-    def __init__(self, func):
+    def __init__(self, func: Callable[[float], float]):
         self.apply = func
 
 
@@ -25,7 +25,7 @@ class QuantifiedAggregation(ABC):
     def __init__(self, quantifier):
         self.quantifier = quantifier
 
-    def aggregate(self, values):
+    def aggregate(self, values: List[float]) -> float:
         pass
 
 
@@ -34,7 +34,7 @@ class ExpectedQuantity(QuantifiedAggregation):
     def __init__(self, quantifier):
         super().__init__(quantifier)
     
-    def aggregate(self, values):
+    def aggregate(self, values: List[float]) -> float:
         n = len(values)
         output = 0.0
 
@@ -58,7 +58,7 @@ class ExpectedQuantity(QuantifiedAggregation):
 
 
 class Aggregator(AgeNode):
-    def __init__(self, attribute, parents, aggregator = None):
+    def __init__(self, attribute: str, parents: List[AgeNode], aggregator: Optional[QuantifiedAggregation] = None):
         super().__init__(attribute)
         self.type = 'Quantified Aggregator Node'
         self.age = 0
@@ -73,10 +73,10 @@ class Aggregator(AgeNode):
             print(type(aggregator), BasicQuantifier)
             raise Exception("Passed argument fo aggregator is neither a quantifier nor a quantified aggregation.")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.type
 
-    def update_belief(self):
+    def update_belief(self) -> None:
         if not self.age_map:
             self.age_map[0] = 1.0
             return

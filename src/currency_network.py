@@ -7,7 +7,7 @@ from src.abstract_node import Node, AgeNode
 
 
 class Network():
-    def __init__(self, nodes: List[Node], skip_null_objects=False):
+    def __init__(self, nodes: List[Node], skip_null_objects: bool=False):
         self.skip_null_objects = skip_null_objects
         ordered_nodes = []
         unordered_nodes = set(nodes)
@@ -21,16 +21,16 @@ class Network():
                     unordered_nodes.remove(node)
         self.nodes: List[Node] = ordered_nodes
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Network(name={self.name}, nodes={self.nodes})"
     
-    def list_nodes(self):
+    def list_nodes(self) -> str:
         print(f"Nodes in network:")
         for index, node in enumerate(self.nodes):
             print(f"{index}: {node} (with parents: {[parent.attribute for parent in node.parents]})")
 
 
-    def estimate(self, data: pd.DataFrame, time_column: str, time_unit = 'integer'):
+    def estimate(self, data: pd.DataFrame, time_column: str, time_unit: str = 'integer') -> Dict[str, Dict[int, float]]:
         time_steps = data[time_column].unique()
         current_time = min(time_steps)
         end_time = max(time_steps)
@@ -57,11 +57,8 @@ class Network():
             current_time = current_time + 1
 
         return currency_map
-    
 
-    def plot_network(self):
-        pass
 
-    def clear(self):
+    def clear(self) -> None:
         for node in self.nodes:
             node.clear()   

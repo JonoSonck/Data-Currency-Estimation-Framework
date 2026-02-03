@@ -7,14 +7,14 @@ from src.abstract_node import AgeNode, DataNode
 
 
 class CrossProductIterator:
-    def __init__(self, attribute_value_map):
+    def __init__(self, attribute_value_map: dict):
         self.attribute_value_map = attribute_value_map
         self.mask = [(key, 0) for key in sorted(attribute_value_map.keys())]
 
-    def has_next(self):
+    def has_next(self) -> bool:
         return bool(self.mask)
     
-    def next(self):
+    def next(self) -> Optional[dict]:
         if not self.mask:
             return None
 
@@ -29,7 +29,7 @@ class CrossProductIterator:
 
         return next_object
 
-    def _adapt_mask(self):
+    def _adapt_mask(self) -> None:
         for i in range(len(self.mask)):
             key, index = self.mask[i]
 
@@ -51,28 +51,28 @@ class CrossProductIterator:
 More precisely, a co-variate variable determines which values the parameter takes through
 a simple generator function. '''
 class ConditionalShelfLife(AgeNode):
-    def __init__(self, attribute, generator, parents):
+    def __init__(self, attribute: str, generator: Callable[[dict], float], parents: List[DataNode]):
         super().__init__(attribute)
         self.type = 'Conditional Geometric Shelf Life Node'
         self.generator = generator
         self.parents = set(parents)
 
     @classmethod
-    def from_map(cls, attribute, map: dict, parents):
+    def from_map(cls, attribute: str, map: dict, parents: List[DataNode]):
         if isinstance(map, DataFrame):
             map = map.set_index(sorted(map.columns[:-1]))[map.columns[-1]].to_dict()
         generator = lambda x: map.get(tuple(x.values()))
         return cls(attribute, generator, parents)
     
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.type
 
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
 
 
-    def update_belief(self):
+    def update_belief(self) -> None:
         if self.age == 0:
             self.age_map = {}
             self.age_map[0] = 1.0

@@ -7,17 +7,17 @@ from src.shelflife.basic_shelflife_node import ShelfLife
 
 
 class DynamicShelfLife(ShelfLife):
-    def __init__(self, attribute, p, smoothing_factor):
+    def __init__(self, attribute: str, p: float, smoothing_factor: float):
         super().__init__(attribute, p)
         self.type = 'Dynamic Geometric Shelf Life Node'
         self.initial_p = p
         self.smoothing_factor = smoothing_factor
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.type
     
     # update the state of a node with new record
-    def update_state(self, current):
+    def update_state(self, current: pd.DataFrame) -> None:
         c_value = current[self.attribute].iloc[0]
         if pd.notna(c_value) and c_value != self._get_previous_value():
             if self._get_previous_value() != None:
@@ -26,7 +26,6 @@ class DynamicShelfLife(ShelfLife):
         
         super().update_state(current)
 
-    
-    def clear(self):
+    def clear(self) -> None:
         super().clear()
         self.set_p(self.initial_p)
