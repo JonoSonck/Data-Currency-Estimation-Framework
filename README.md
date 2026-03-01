@@ -10,12 +10,13 @@ Data currency is a dimension in data quality research that addresses discrepanci
 
 *The link to the full paper will be shared when it's accepted and published.*
 
-The code used during the writing of this paper, is marked as release v1.0: *"Code from paper"*. The code has since been worked on to make further improvements and expansions.
+The code used during the writing of this paper is marked as release v1.0: *"Code from paper"*. The code has since been worked on to make further improvements and expansions.
 
 
 ## Repository file structure
 
 - cur_est_net_testing_example: a basic usage example which shows the necessary steps to perform the currency estimates using the framework.
+- network_config.xml: an example XML file that describes a network structure and can be loaded into the code. This XML file could also be used in other coding implementations for easier comparison.
  
 :file_folder:  src
    - :file_folder:  changepoint: contains all estimation methods regarding *'change point detection'* methods, including (1) CUSUM change point detection.
@@ -29,7 +30,7 @@ The code used during the writing of this paper, is marked as release v1.0: *"Cod
 
 The *'cur_est_net_testing_example'* notebook gives a code-based overview of the necessary steps to perform the estimates using our proposed framework. In summary, the user has to:
 1. Load in the data as a pandas DataFrame.
-2. Instantiate the preferred node class for each attribute that is involved in the estimate.
+2. If preferred, manually instantiate the appropriate node class for each attribute involved in the estimate, instead of using the XML config file.
 3. Instantiate the network with all relevant nodes.
 4. Run the network estimation function (generate and clear the beliefs per entity!) and output the results.
 
