@@ -15,10 +15,10 @@ class Node(ABC):
         cls.id_counter += 1
         return cls.id_counter
 
-    def __init__(self, attribute: str, parents: Optional[List[Node]] = set()):
+    def __init__(self, attribute: str, parents: Optional[List[Self]] = set()):
         self.attribute = attribute
         self.id = self.set_id()
-        self.parents: Set[Node] = set(parents)
+        self.parents: Set[Self] = set(parents)
         self.type = "Node"
 
     def get_attribute(self) -> str:
@@ -31,7 +31,7 @@ class Node(ABC):
     def get_type(self) -> str:
         return self.type
 
-    def get_parents(self) -> Set[Node]:
+    def get_parents(self) -> Set[Self]:
         return self.parents
 
     # Updates the node state based on new evidence

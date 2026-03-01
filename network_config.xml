@@ -1,0 +1,46 @@
+<Network skip_null_objects="False">
+
+  <Nodes>
+
+    <Node name="age_bin_node" class="DataNode" attribute="age_bin">
+      <Param name="prior" type="dict">
+        {"0-24": 0.05, "25-29": 0.2, "30-34": 0.2,
+         "35-39": 0.15, "40-44": 0.1,
+         "45-49": 0.05, "50-59": 0.1,
+         "60-69": 0.1, "70-100": 0.05}
+      </Param>
+    </Node>
+
+    <Node name="gender_node" class="DataNode" attribute="gender">
+      <Param name="prior" type="dict">
+        {"f": 0.5, "m": 0.5}
+      </Param>
+    </Node>
+
+    <Node name="relationship_node" class="ConditionalShelfLife" attribute="marital_status">
+      <Method>from_map</Method>
+      <Param name="map_ext">marriage_rates_map</Param>
+      <Parents>
+        <Parent ref="gender_node"/>
+        <Parent ref="age_bin_node"/>
+      </Parents>
+    </Node>
+
+    <Node name="child_sum_node" class="CUSUMPoisson" attribute="children">   
+      <Param name="a" type="int">1</Param>
+      <Param name="b" type="int">1</Param>
+      <Param name="ground_lambda" type="float">0.01</Param>
+      <Param name="alt_lambda" type="float">1</Param>
+    </Node>
+
+    <Node name="agg_relationship_node" class="Aggregator" attribute="marital_status">
+      <Parents>
+          <Parent ref="relationship_node"/>
+          <Parent ref="child_sum_node"/>
+      </Parents>
+      <AggregatorType enum="BasicQuantifier.AVERAGE"/>
+    </Node>
+
+  </Nodes>
+
+</Network>
