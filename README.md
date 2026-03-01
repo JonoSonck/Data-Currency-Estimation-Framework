@@ -10,6 +10,8 @@ Data currency is a dimension in data quality research that addresses discrepanci
 
 *The link to the full paper will be shared when it's accepted and published.*
 
+The code used during the writing of this paper, is marked as release v1.0: *"Code from paper"*. The code has since been worked on to make further improvements and expansions.
+
 
 ## Repository file structure
 
