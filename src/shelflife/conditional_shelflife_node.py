@@ -3,7 +3,7 @@ from pandas import DataFrame
 from abc import ABC, abstractmethod
 from typing import *
 
-from src.abstract_node import AgeNode, DataNode
+from src.abstract_node import AgeNode, AgeMap, DataNode
 
 
 class CrossProductIterator:
@@ -51,8 +51,8 @@ class CrossProductIterator:
 More precisely, a co-variate variable determines which values the parameter takes through
 a simple generator function. '''
 class ConditionalShelfLife(AgeNode):
-    def __init__(self, attribute: str, generator: Callable[[dict], float], parents: List[DataNode]):
-        super().__init__(attribute)
+    def __init__(self, attribute: str, generator: Callable[[dict], float], parents: List[DataNode], certainty_on_reobservation: bool = False):
+        super().__init__(attribute, certainty_on_reobservation)
         self.type = 'Conditional Geometric Shelf Life Node'
         self.generator = generator
         self.parents = set(parents)
@@ -72,31 +72,27 @@ class ConditionalShelfLife(AgeNode):
         super().clear()
 
 
-    def update_belief(self) -> None:
-        if self.age == 0:
-            self.age_map = {}
-            self.age_map[0] = 1.0
-        else:
-            updated_age_map = {0:0.0}
-            for key, value in self.age_map.items():
-                updated_age_map[key+1] = value
+    def _update_belief_uncertainty(self) -> None:
+        updated_age_map = {0:0.0}
+        for key, value in self.age_map.items():
+            updated_age_map[key+1] = value
 
-            iterator = CrossProductIterator({parent.attribute: list(parent.belief.keys()) for parent in self.parents})
+        iterator = CrossProductIterator({parent.attribute: list(parent.belief.keys()) for parent in self.parents})
 
-            while iterator.has_next():
-                current_parent_values = iterator.next()
-                    
-                prior = 1.0
-                for parent in self.parents:
-                    parent_belief_table = parent.belief
-                    prior *= parent_belief_table[current_parent_values[parent.attribute]]
+        while iterator.has_next():
+            current_parent_values = iterator.next()
                 
-                geom_p = self.generator(current_parent_values)  # get the hazard value from the generator function
-                geom_k = self.age
-                prob = geom_p * ((1 - geom_p) ** geom_k)
+            prior = 1.0
+            for parent in self.parents:
+                parent_belief_table = parent.belief
+                prior *= parent_belief_table[current_parent_values[parent.attribute]]
+            
+            geom_p = self.generator(current_parent_values)  # get the hazard value from the generator function
+            geom_k = self.age
+            prob = geom_p * ((1 - geom_p) ** geom_k)
 
-                updated_age_map[0] += (prior * prob)
+            updated_age_map[0] += (prior * prob)
 
-            updated_age_map[self.age] -= updated_age_map[0]
+        updated_age_map[self.age] -= updated_age_map[0]
 
-            self.age_map = updated_age_map.copy()
+        self.age_map = AgeMap(updated_age_map)

@@ -4,6 +4,20 @@ from abc import ABC, abstractmethod
 from typing import *
 
 
+class AgeMap(dict):
+    THRESHOLD = 1e-10
+
+    def __setitem__(self, key, value) -> None:
+        super().__setitem__(key, 0.0 if value < self.THRESHOLD else value)
+
+    def update(self, *args, **kwargs) -> None:
+        for key, value in dict(*args, **kwargs).items():
+            self[key] = value
+
+    def copy(self):
+        return AgeMap(self)
+
+
 
 ''' Abstract class for a node in a belief network '''
 class Node(ABC):
@@ -44,6 +58,11 @@ class Node(ABC):
     def update_belief(self) -> None:
         pass
 
+    # specific update_belief segment for cases where no value was observed at timestep
+    @abstractmethod
+    def _update_belief_uncertainty(self) -> None:
+        pass
+
     # Clears the nodes
     @abstractmethod
     def clear(self) -> None:
@@ -53,12 +72,14 @@ class Node(ABC):
 
 '''Class for an age node in a belief network, which inherets from the abstract Node class'''
 class AgeNode(Node):
-    def __init__(self, attribute: str):
+    def __init__(self, attribute: str, certainty_on_reobservation: bool = False):
         super().__init__(attribute)
         self.type = 'Age Node'
         self.previous_value = None
         self.age = None
-        self.age_map = {}
+        self.age_map = AgeMap()
+        self.certainty_on_reobservation = certainty_on_reobservation
+        self.identical_observation_trigger = False
 
     def __str__(self) -> str:
         return f"Age node for attribute '{self.attribute}'"
@@ -80,19 +101,45 @@ class AgeNode(Node):
             else:
                 self.age += 1
         
-        c_value = current[self.attribute].iloc[0]
-        if pd.notna(c_value) and c_value != self._get_previous_value():
-            self._set_age(0)
-            self._set_previous_value(c_value)
-
         else:
-            if self.age == None:
-                self.age = 0
-            else:
-                self.age += 1
+            c_value = current[self.attribute].iloc[0]
+            # observation with same value 
+            if pd.notna(c_value) and c_value == self._get_previous_value() and self.certainty_on_reobservation:
+                self.identical_observation_trigger = True
+            
+            # observation with different value
+            if pd.notna(c_value) and c_value != self._get_previous_value():
+                self._set_age(0)
+                self._set_previous_value(c_value)
 
+            else:
+                if self.age == None:
+                    self.age = 0
+                else:
+                    self.age += 1
+
+            
+
+        
 
     def update_belief(self) -> None:
+        # if a new observation is different from the last known value
+        if self.age == 0:
+            self.age_map = AgeMap()
+            self.age_map[0] = 1.0
+            return
+        
+        # if we measure it again, but the value stays the same, we can be certain that the age is still the same and previous intermediary probabilities drop to 0
+        if self.identical_observation_trigger:
+            self.age_map = AgeMap({i: 0.0 if i < self.age else 1.0 for i in range(self.age + 1)})
+            self.identical_observation_trigger = False
+            return
+        
+        # child classes handle behaviour for cases where there is no attribute value observed at the current timestep
+        self._update_belief_uncertainty()
+    
+
+    def _update_belief_uncertainty(self) -> None:
         pass
 
     def _set_previous_value(self, value: Optional[Any]) -> None: 
@@ -113,7 +160,7 @@ class AgeNode(Node):
 
     def clear(self) -> None:
         super().clear()
-        self.age_map = {}
+        self.age_map = AgeMap()
         self.previous_value = None
         self.age = None
 
@@ -141,6 +188,9 @@ class DataNode(Node):
             self.belief = self.prior
         else:
             self.belief = {self.state: 1.0}
+    
+    def _update_belief_uncertainty(self) -> None:
+        pass
     
     def clear(self) -> None:
         super().clear()

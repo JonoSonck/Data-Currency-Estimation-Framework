@@ -41,13 +41,14 @@ class Network():
         current_time = min(time_steps)
         end_time = max(time_steps)
 
-        #create a dictionary with one item per age node as keys and a list of currency estimates as values
+        # create a dictionary with one item per age node as keys and a list of currency estimates as values
         currency_map = {f'{node.attribute}_currency': {} for node in self.nodes if isinstance(node, AgeNode)}
 
+        # uncomment the following lines that mention 'full_age_map' if you are interested in seeing the entire age map at every timestep. This makes it easier for testing new nodes.
+        #full_age_map = {f'{node.attribute}_age_map': {} for node in self.nodes if isinstance(node, AgeNode)}
         
         while current_time <= end_time:
-            if current_time in time_steps:
-                current = data[data[time_column] == current_time]
+            current = data[data[time_column] == current_time]
 
             #update model nodes, respecting dependency order
             for node in self.nodes:
@@ -59,10 +60,10 @@ class Network():
                 for n in self.nodes:
                     if isinstance(n, AgeNode):
                         currency_map[f'{n.attribute}_currency'][current_time] = n.currency()
-            
+                        #full_age_map[f'{n.attribute}_age_map'][current_time] = n.age_map        
             current_time = current_time + 1
 
-        return currency_map
+        return currency_map#, full_age_map
 
 
     def clear(self) -> None:

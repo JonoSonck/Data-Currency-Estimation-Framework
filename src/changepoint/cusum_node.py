@@ -3,12 +3,12 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from typing import *
 
-from src.abstract_node import AgeNode
+from src.abstract_node import AgeNode, AgeMap
 
 
 class CUSUM(AgeNode, ABC):
     def __init__(self, attribute: str, ground_belief: float = 1.0, cusum: float = 0, a: float = 1, b: float = 1):
-        super().__init__(attribute)
+        super().__init__(attribute, certainty_on_reobservation=False)
         self.type = 'AbstractCUSUM Node'
         self.ground_belief = ground_belief
         self.cusum = cusum
@@ -21,16 +21,12 @@ class CUSUM(AgeNode, ABC):
     def cusum_belief(self) -> Dict[str, float]:
         return {'ground':self.ground_belief, 'alternative':(1-self.ground_belief)}
     
-    def update_belief(self) -> None:
+    def _update_belief_uncertainty(self) -> None:
         # update the cusum belief
         alt_prob = np.tanh((self.cusum**self.a)/self.b)
         self.ground_belief = 1-alt_prob
 
         # update the age_map belief
-        if not self.age_map:
-            self.age_map[0] = 1.0
-            return
-
         updated_age_map = {0:0.0}
         for key, value in self.age_map.items():
             updated_age_map[key+1] = value
@@ -47,7 +43,7 @@ class CUSUM(AgeNode, ABC):
             updated_age_map[0] += (new_cumul - prev_cumul)
             updated_age_map[self.age] -= (new_cumul - prev_cumul)
 
-        self.age_map = updated_age_map.copy()
+        self.age_map = AgeMap(updated_age_map)
     
     def set_cusum(self, cusum: float) -> None:
         self.cusum = cusum

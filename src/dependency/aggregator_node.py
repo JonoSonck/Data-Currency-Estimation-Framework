@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import *
 from enum import Enum
 
-from src.abstract_node import AgeNode
+from src.abstract_node import AgeNode, AgeMap
 
 
 class BasicQuantifier(Enum):
@@ -58,8 +58,8 @@ class ExpectedQuantity(QuantifiedAggregation):
 
 
 class Aggregator(AgeNode):
-    def __init__(self, attribute: str, parents: List[AgeNode], aggregator: Optional[QuantifiedAggregation] = None):
-        super().__init__(attribute)
+    def __init__(self, attribute: str, parents: List[AgeNode], aggregator: Optional[QuantifiedAggregation] = None, window: Optional[int] = None, certainty_on_reobservation: bool = False):
+        super().__init__(attribute, certainty_on_reobservation)
         self.type = 'Quantified Aggregator Node'
         self.age = 0
         self.parents = set(parents)
@@ -72,27 +72,29 @@ class Aggregator(AgeNode):
         else:
             print(type(aggregator), BasicQuantifier)
             raise Exception("Passed argument fo aggregator is neither a quantifier nor a quantified aggregation.")
+        self.window = window
 
     def __str__(self) -> str:
         return self.type
 
-    def update_belief(self) -> None:
-        if not self.age_map:
-            self.age_map[0] = 1.0
-            return
-
+    def _update_belief_uncertainty(self) -> None:
         updated_age_map = {0:0.0}
         for key, value in self.age_map.items():
             updated_age_map[key+1] = value
 
+        if self.window is None:
+            w = self.age - 1
+        else:
+            w = self.window if self.age - 1 >= self.window else self.age - 1
+
         current_cumul = 0.0
         for key, value in updated_age_map.items():
-            if key < self.age:
+            if key <= w:
                 current_cumul += value
-
-        next_cumul = self.aggregator.aggregate([(1.0 - parent.currency()) for parent in self.parents])
+        
+        next_cumul = self.aggregator.aggregate([sum([parent.probability(i) for i in range(w+1)]) for parent in self.parents]) 
 
         if next_cumul > current_cumul:
             updated_age_map[0] += (next_cumul - current_cumul)
             updated_age_map[self.age] -= (next_cumul - current_cumul)
-        self.age_map = updated_age_map.copy()  
+        self.age_map = AgeMap(updated_age_map)
