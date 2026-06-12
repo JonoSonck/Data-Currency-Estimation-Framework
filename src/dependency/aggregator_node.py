@@ -78,23 +78,19 @@ class Aggregator(AgeNode):
         return self.type
 
     def _update_belief_uncertainty(self) -> None:
-        updated_age_map = {0:0.0}
-        for key, value in self.age_map.items():
-            updated_age_map[key+1] = value
 
         if self.window is None:
             w = self.age - 1
+        elif self.window is not None and self.window < 0:
+            w = 0
         else:
             w = self.window if self.age - 1 >= self.window else self.age - 1
 
-        current_cumul = 0.0
-        for key, value in updated_age_map.items():
-            if key <= w:
-                current_cumul += value
-        
-        next_cumul = self.aggregator.aggregate([sum([parent.probability(i) for i in range(w+1)]) for parent in self.parents]) 
+        change_rate = self.aggregator.aggregate([sum([(parent.probability(i) if i < parent.age or i == 0 else 0) for i in range(w+1) ]) for parent in self.parents])
 
-        if next_cumul > current_cumul:
-            updated_age_map[0] += (next_cumul - current_cumul)
-            updated_age_map[self.age] -= (next_cumul - current_cumul)
+        updated_age_map = {0:0.0}
+        for key, value in self.age_map.items():
+            updated_age_map[key + 1] = value * (1 - change_rate)
+            updated_age_map[0] = change_rate
+
         self.age_map = AgeMap(updated_age_map)

@@ -2,13 +2,13 @@
 
 This repository contains the code linked to a research project about data currency estimation. 
 
-A paper regarding the theory behind the code has been submitted to the IPMU26 conference.
+A paper regarding the theory behind the code was presented at the IPMU26 conference.
 
 **Paper Abstract:**
 Data currency is a dimension in data quality research that addresses discrepancies related to a temporal decline between stored data and real-world values. While several methods exist to estimate data currency, existing research on this topic remains fragmented and approaches the problem from several perspectives. In this paper, we propose a unified framework that integrates existing estimation techniques by representing them as components of nodes within a Bayesian belief network. Each node maintains attribute-specific (meta-)data and, where applicable, an estimation technique for modeling the probability distribution over an attribute’s age. The edges impose dependencies and constraints on the (transfer of) belief through the network. We further describe the combination of nodes in the overall network architecture, including mechanisms for handling dependencies and aggregation. We demonstrate the possibilities of the proposed framework by replicating existing techniques and further expanding them. The modularity of our network allows us to adapt the inner workings of our nodes to accommodate the characteristics of the data under consideration, all while maintaining ease-of-use and interpretability.
 
 
-*The link to the full paper will be shared when it's accepted and published.*
+The link to the full paper can be found here: https://doi.org/10.1007/978-3-032-29000-7_3
 
 The code used during the writing of this paper is marked as release v1.0: *"Code from paper"*. The code has since been worked on to make further improvements and expansions.
 
@@ -20,7 +20,7 @@ The code used during the writing of this paper is marked as release v1.0: *"Code
  
 :file_folder:  src
    - :file_folder:  changepoint: contains all estimation methods regarding *'change point detection'* methods, including (1) CUSUM change point detection.
-   - :file_folder:  dependency: contains all belief propagation methods related to connected nodes, including (1) aggregator which combines multiple nodes into a single belief.
+   - :file_folder:  dependency: contains all belief propagation methods related to connected nodes, including (1) aggregator which combines multiple nodes into a single belief and (2) change constraints to model correlations in currency decline.
    - :file_folder:  shelflife: contains all estimation methods regarding *'shelf-life'* models, including (1) basic shelf-life with hazard function (2) dynamic shelf-life and (3) conditional shelf-life that bases its hazard value on other data values.
    - abstract_node: implements the basic structure of nodes, including a specific *age node* and *data node* implementation. The files above use this structure for further development. 
    - currency_network: the implementation of the network architecture, which connects the nodes into a Bayesian belief network structure, and instructs each node to perform the right measures in sequential order.

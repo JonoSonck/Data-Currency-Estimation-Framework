@@ -58,11 +58,11 @@ class ConditionalShelfLife(AgeNode):
         self.parents = set(parents)
 
     @classmethod
-    def from_map(cls, attribute: str, map: dict, parents: List[DataNode]):
+    def from_map(cls, attribute: str, map: dict, parents: List[DataNode], certainty_on_reobservation: bool = False):
         if isinstance(map, DataFrame):
             map = map.set_index(sorted(map.columns[:-1]))[map.columns[-1]].to_dict()
         generator = lambda x: map.get(tuple(x.values()))
-        return cls(attribute, generator, parents)
+        return cls(attribute, generator, parents, certainty_on_reobservation)
     
 
     def __str__(self) -> str:

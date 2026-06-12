@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 from abc import ABC, abstractmethod
 from typing import *
 
@@ -69,6 +70,37 @@ class Node(ABC):
         pass
 
 
+class Event():
+    def __init__(self, event_times: Dict = {}, special_event_type: Optional[str] = None):
+        self.event_times = event_times
+        self.special_event_type = special_event_type
+
+    @classmethod
+    def pointmass(cls, t: int, p: float):
+        return cls({t:p})
+    
+    @classmethod
+    def reset(cls, t: int):
+        return cls({t:1.0}, special_event_type="reset")
+    
+    def get_event_times(self) -> Dict:
+        return self.event_times
+    
+    def get_special_event_type(self) -> Optional[str]:
+        return self.special_event_type
+    
+    def max_t(self) -> int:
+        return max(self.event_times.keys()) if self.event_times != {} else -1
+    
+    def min_t(self) -> int:
+        return min(self.event_times.keys()) if self.event_times != {} else math.inf
+    
+    def grow(self) -> None:
+        new_times = {t+1:p for t, p in self.event_times.items()}
+        self.event_times = new_times.copy()
+    
+
+
 
 '''Class for an age node in a belief network, which inherets from the abstract Node class'''
 class AgeNode(Node):
@@ -80,6 +112,7 @@ class AgeNode(Node):
         self.age_map = AgeMap()
         self.certainty_on_reobservation = certainty_on_reobservation
         self.identical_observation_trigger = False
+        self.age_of_certain_remeasurement = None
 
     def __str__(self) -> str:
         return f"Age node for attribute '{self.attribute}'"
@@ -106,11 +139,13 @@ class AgeNode(Node):
             # observation with same value 
             if pd.notna(c_value) and c_value == self._get_previous_value() and self.certainty_on_reobservation:
                 self.identical_observation_trigger = True
+                self.age_of_certain_remeasurement = self.age + 1  # +1 because the regular incrementation of age happens after this check
             
             # observation with different value
             if pd.notna(c_value) and c_value != self._get_previous_value():
                 self._set_age(0)
                 self._set_previous_value(c_value)
+                self.age_of_certain_remeasurement = None
 
             else:
                 if self.age == None:
@@ -118,10 +153,7 @@ class AgeNode(Node):
                 else:
                     self.age += 1
 
-            
-
-        
-
+    # update the belief of a node according to the new state
     def update_belief(self) -> None:
         # if a new observation is different from the last known value
         if self.age == 0:
@@ -135,10 +167,9 @@ class AgeNode(Node):
             self.identical_observation_trigger = False
             return
         
-        # child classes handle behaviour for cases where there is no attribute value observed at the current timestep
+        # child classes handle the behaviour for cases where there is no attribute value observed at the current timestep
         self._update_belief_uncertainty()
     
-
     def _update_belief_uncertainty(self) -> None:
         pass
 
@@ -147,7 +178,6 @@ class AgeNode(Node):
 
     def _get_previous_value(self) -> Optional[Any]:
         return self.previous_value
-    
 
     def _set_age(self, age: Optional[int]) -> None:
         self.age = age
@@ -157,12 +187,26 @@ class AgeNode(Node):
 
     def _get_age_map(self) -> Dict:
         return self.age_map
+    
+    # function made for the change constraint node
+    def get_last_event(self) -> Optional[int]:
+        # special case for agemaps which underwent a reobservation reset
+        if self.age > 0 and self.age_map[self.age] == 1.0:
+            return Event.reset(self.age)
+        # regular case
+        return Event.pointmass(0, self.age_map[0])
+    
+    # function made for the change constraint node
+    def get_age_of_certain_remeasurement(self):
+        return self.age_of_certain_remeasurement
 
     def clear(self) -> None:
         super().clear()
         self.age_map = AgeMap()
         self.previous_value = None
         self.age = None
+        self.identical_observation_trigger = False
+        self.age_of_certain_remeasurement = None
 
 
 
