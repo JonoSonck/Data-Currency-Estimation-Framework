@@ -223,10 +223,15 @@ class DataNode(Node):
         return f"Data node for attribute '{self.attribute}'"
     
     def update_state(self, current: pd.DataFrame) -> None:
-        c_value = current[self.attribute].iloc[0]
-        if pd.notna(c_value):
-            self.state = c_value
-    
+        if current.empty:
+            self.state = None
+        else:
+            c_value = current[str(self.attribute)].iloc[0]
+            if pd.notna(c_value):
+                self.state = c_value
+            else:
+                self.state = None
+
     def update_belief(self) -> None:
         if self.state is None:
             self.belief = self.prior

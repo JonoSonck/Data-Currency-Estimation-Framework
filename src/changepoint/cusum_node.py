@@ -73,7 +73,9 @@ class CUSUMPoisson(CUSUM):
         else:
             self.age += 1
 
-        if (current.empty) | (current[str(self.attribute)].iloc[0] is None):
+        if current.empty:
+            self.delta_time += 1
+        elif (current[str(self.attribute)].iloc[0] is None):
             self.delta_time += 1
         else:
             k = current[str(self.attribute)].iloc[0]
@@ -105,7 +107,14 @@ class CUSUMNormal(CUSUM):
         return f"CUSUM Normal node for attribute '{self.attribute}'"
     
     def update_state(self, current: pd.DataFrame) -> None:
-        if (current.empty) | (current[str(self.attribute)].iloc[0] is None):
+        if self.age == None:
+            self.age = 0
+        else:
+            self.age += 1
+    
+        if current.empty:
+            self.delta_time += 1
+        elif (current[str(self.attribute)].iloc[0] is None):
             self.delta_time += 1
         else:
             k = current[str(self.attribute)].iloc[0]
